@@ -5601,7 +5601,9 @@
 								}).then(function () {
 									showNotice('Terima kasih atas ucapan dan konfirmasi kehadirannya! 🎉');
 									form.reset();
+									if (confirmField) confirmField.value = '0';
 									if (countGroup) countGroup.style.display = 'none';
+									if (countField) countField.disabled = true;
 									addComment(name, message, new Date().toLocaleString('id-ID'));
 									setTimeout(loadUcapan, 3000);
 								}).catch(function () {
@@ -5620,7 +5622,9 @@
 							localStorage.setItem('rsvp_data', JSON.stringify(data));
 							showNotice('Terima kasih atas ucapan dan konfirmasi kehadirannya! 🎉');
 							form.reset();
+							if (confirmField) confirmField.value = '0';
 							if (countGroup) countGroup.style.display = 'none';
+							if (countField) countField.disabled = true;
 							addComment(name, message, entry.timestamp);
 						}
 
@@ -5645,6 +5649,15 @@
 							container.insertBefore(c, container.firstChild);
 						}
 
+						function appendComment(name, text, time) {
+							if (!container) return;
+							container.style.display = '';
+							var c = document.createElement('div');
+							c.className = 'comment';
+							c.innerHTML = '<div class="name">' + esc(name) + '</div><div class="text">' + esc(text) + '</div><div class="time">' + esc(time) + '</div>';
+							container.appendChild(c);
+						}
+
 						function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 						function loadUcapan() {
@@ -5652,7 +5665,7 @@
 							fetch(WEB_APP_URL).then(function (r) { return r.json(); }).then(function (res) {
 								if (res.data && res.data.length > 0) {
 									container.innerHTML = '';
-									res.data.forEach(function (item) { addComment(item.name, item.text, item.timestamp); });
+									res.data.forEach(function (item) { appendComment(item.name, item.text, item.timestamp); });
 								}
 							}).catch(function () { loadLocal(); });
 						}
@@ -5661,7 +5674,7 @@
 							var data = JSON.parse(localStorage.getItem('rsvp_data') || '[]');
 							if (data.length > 0 && container) {
 								container.innerHTML = '';
-								data.slice().reverse().forEach(function (item) { addComment(item.name, item.text, item.timestamp); });
+								data.slice().reverse().forEach(function (item) { appendComment(item.name, item.text, item.timestamp); });
 							}
 						}
 
