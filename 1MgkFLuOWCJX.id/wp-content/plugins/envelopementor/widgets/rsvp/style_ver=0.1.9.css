@@ -1,0 +1,66 @@
+.elementor-form-fields-wrapper {
+  font-size: 0.8rem !important;
+  font-family: "Poppins", Arial;
+}
+
+.elementor-message-danger,
+.elementor-message-success {
+  display: none !important;
+}
+
+.noticeConfirm {
+  display: none;
+  font-size: 14px;
+  line-height: 1.6em;
+  font-family: "Cabin", "Poppins", Sans-Serif;
+  color: red;
+  font-weight: 400;
+  margin-top: 12px;
+  margin-left: 12px;
+  margin-bottom: 12px;
+}
+
+.noticeSuccess {
+  display: none;
+  font-size: 14px;
+  line-height: 1.6em;
+  font-family: "Cabin", "Poppins", Sans-Serif;
+  font-weight: 600;
+  margin-top: -2px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.rsvp-data-container {
+  text-align: left;
+  background-color: #ffffff;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 0 20px;
+}
+
+.comment {
+  border-bottom: 1px solid #ccc;
+  padding: 12px 0;
+  font-size: small;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.name {
+  font-weight: bold;
+  color: #333;
+}
+
+.text {
+  color: #333;
+}
+
+.time {
+  font-style: italic;
+  font-size: x-small;
+  color: #666;
+}

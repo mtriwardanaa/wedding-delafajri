@@ -1,0 +1,42 @@
+.footer-container {
+    display: flex;
+    flex-direction: column;
+    min-width: 100%;
+    align-items: center;
+    font-family: "Lora", Sans-serif;
+    font-size: 11px;
+    color: #ffffff;
+    padding-bottom: 40px;
+    padding-top: 50px;
+    gap: 6px;
+}
+
+.socmed-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.socmed-item {
+    display: flex;
+    align-items: center;
+    color: #ffffff;
+    gap: 6px;
+}
+
+.socmed-icon {
+    font-size: 13px;
+}
+
+.vendor-logo {
+    max-height: 60px;
+    margin-top: 4px;
+    margin-bottom: 10px;
+    border-radius: 8px !important;
+}
+
+.elementor-slideshow__title {
+    display: none !important;
+}
