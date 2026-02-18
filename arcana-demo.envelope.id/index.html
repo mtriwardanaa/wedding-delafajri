@@ -5559,6 +5559,13 @@
 						if (countGroup) countGroup.style.display = 'none';
 						if (countField) countField.disabled = true;
 
+						// Pre-fill guest name from ?to= query param (same as cover name)
+						var guestInput = document.getElementById('form-field-guestname');
+						var toParam = new URLSearchParams(window.location.search).get('to');
+						if (toParam && guestInput) {
+							guestInput.value = decodeURIComponent(toParam.replace(/\+/g, ' '));
+						}
+
 						if (confirmField) {
 							confirmField.addEventListener('change', function () {
 								var showCount = this.value === 'Hadir';
