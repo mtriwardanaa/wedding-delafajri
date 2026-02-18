@@ -5454,7 +5454,7 @@
 				<div class="elementor-element elementor-element-313766b elementor-button-align-start reanimate up elementor-widget elementor-widget-form"
 					data-id="313766b" data-element_type="widget" data-settings="{"
 					button_width":"80","step_next_label":"next","step_previous_label":"previous","step_type":"number_text","step_icon_shape":"circle"}"=""
-					data-widget_type="form.default">
+					data-widget_type="text.default">
 					<div class="elementor-widget-container">
 						<form class="elementor-form" method="post" name="nama mempelai">
 							<input type="hidden" name="post_id" value="15895">
@@ -5580,6 +5580,7 @@
 						if (form) {
 							form.addEventListener('submit', function (e) {
 								e.preventDefault();
+								e.stopImmediatePropagation();
 								var name = document.getElementById('form-field-guestname').value.trim();
 								var message = document.getElementById('form-field-messagestext').value.trim();
 								var attendance = confirmField ? confirmField.value : '';
