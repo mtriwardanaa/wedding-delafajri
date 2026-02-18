@@ -5592,7 +5592,7 @@
 									return;
 								}
 
-								if (WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbxk4HpvBKmKEObej35hAAec0_LbV73WXECDXUQdOJgsXTDzqZ1WpCsZiFNsnPYAhJhx/exec') {
+								if (WEB_APP_URL.indexOf('PASTE_YOUR') !== -1) {
 									saveLocal(name, message, attendance, count);
 									return;
 								}
@@ -5603,20 +5603,31 @@
 								btn.disabled = true;
 								btnText.textContent = 'Mengirim...';
 
+								// Send as text/plain to avoid CORS preflight (OPTIONS request) issues
 								fetch(WEB_APP_URL, {
-									method: 'POST', mode: 'no-cors',
-									headers: { 'Content-Type': 'application/json' },
+									method: 'POST',
 									body: JSON.stringify({ name: name, message: message, attendance: attendance, count: count })
-								}).then(function () {
+								}).then(function (response) {
+									if (!response.ok) throw new Error('Network response was not ok');
+									return response.json();
+								}).then(function (res) {
+									if (res.status === 'error') throw new Error(res.message);
+
 									showNotice('Terima kasih atas ucapan dan konfirmasi kehadirannya! 🎉');
 									form.reset();
 									if (toParam && guestInput) guestInput.value = decodeURIComponent(toParam.replace(/\+/g, ' '));
 									if (confirmField) confirmField.value = '0';
 									if (countGroup) countGroup.style.display = 'none';
 									if (countField) countField.disabled = true;
+
+									// Update list locally to show immediate feedback
 									addComment(name, message, new Date().toLocaleString('id-ID'));
-									setTimeout(loadUcapan, 3000);
-								}).catch(function () {
+
+									// Reload from server after delay
+									setTimeout(loadUcapan, 2000);
+								}).catch(function (err) {
+									console.error('RSVP Error:', err);
+									showNotice('Gagal mengirim ke server (disimpan lokal).', true);
 									saveLocal(name, message, attendance, count);
 								}).finally(function () {
 									btn.disabled = false;
@@ -5662,12 +5673,15 @@
 									existing[i].querySelector('.time').textContent = time;
 									// Move to top
 									container.insertBefore(existing[i], container.firstChild);
+									if (rsvpWidget) rsvpWidget.style.removeProperty('display');
+									container.style.removeProperty('display');
 									return;
 								}
 							}
 							// New comment
-							if (rsvpWidget) rsvpWidget.style.display = '';
-							container.style.display = '';
+							if (rsvpWidget) rsvpWidget.style.removeProperty('display');
+							container.style.removeProperty('display');
+
 							var c = document.createElement('div');
 							c.className = 'comment';
 							c.innerHTML = '<div class="name">' + esc(name) + '</div><div class="text">' + esc(text) + '</div><div class="time">' + esc(time) + '</div>';
@@ -5676,8 +5690,8 @@
 
 						function appendComment(name, text, time) {
 							if (!container) return;
-							if (rsvpWidget) rsvpWidget.style.display = '';
-							container.style.display = '';
+							if (rsvpWidget) rsvpWidget.style.removeProperty('display');
+							container.style.removeProperty('display');
 							var c = document.createElement('div');
 							c.className = 'comment';
 							c.innerHTML = '<div class="name">' + esc(name) + '</div><div class="text">' + esc(text) + '</div><div class="time">' + esc(time) + '</div>';
@@ -5687,15 +5701,22 @@
 						function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 						function loadUcapan() {
-							if (WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbxk4HpvBKmKEObej35hAAec0_LbV73WXECDXUQdOJgsXTDzqZ1WpCsZiFNsnPYAhJhx/ex') { loadLocal(); return; }
+							if (WEB_APP_URL.indexOf('PASTE_YOUR') !== -1) { loadLocal(); return; }
 							fetch(WEB_APP_URL).then(function (r) { return r.json(); }).then(function (res) {
-								if (res.data && res.data.length > 0) {
-									container.innerHTML = '';
-									container.style.display = '';
-									res.data.forEach(function (item) { appendComment(item.name, item.text, item.timestamp); });
+								if (res.data) {
+									var validData = res.data.filter(function (i) { return i.name && i.name.trim() !== ''; });
+									if (validData.length > 0) {
+										container.innerHTML = '';
+										if (rsvpWidget) rsvpWidget.style.removeProperty('display');
+										container.style.removeProperty('display');
+										validData.forEach(function (item) { appendComment(item.name, item.text, item.timestamp); });
+									} else {
+										container.style.setProperty('display', 'none', 'important');
+										if (rsvpWidget) rsvpWidget.style.setProperty('display', 'none', 'important');
+									}
 								} else {
-									container.style.display = 'none';
-									if (rsvpWidget) rsvpWidget.style.display = 'none';
+									container.style.setProperty('display', 'none', 'important');
+									if (rsvpWidget) rsvpWidget.style.setProperty('display', 'none', 'important');
 								}
 							}).catch(function () { loadLocal(); });
 						}
@@ -5704,11 +5725,12 @@
 							var data = JSON.parse(localStorage.getItem('rsvp_data') || '[]');
 							if (data.length > 0 && container) {
 								container.innerHTML = '';
-								container.style.display = '';
+								if (rsvpWidget) rsvpWidget.style.removeProperty('display');
+								container.style.removeProperty('display');
 								data.slice().reverse().forEach(function (item) { appendComment(item.name, item.text, item.timestamp); });
 							} else if (container) {
-								container.style.display = 'none';
-								if (rsvpWidget) rsvpWidget.style.display = 'none';
+								container.style.setProperty('display', 'none', 'important');
+								if (rsvpWidget) rsvpWidget.style.setProperty('display', 'none', 'important');
 							}
 						}
 
