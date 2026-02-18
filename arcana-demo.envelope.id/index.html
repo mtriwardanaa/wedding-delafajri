@@ -5934,8 +5934,10 @@
 											});
 
 											setInterval(function () {
-												var state = { data: ytVideoPlayer.getPlayerState() }
-												onVideoPlayerStateChange(state);
+												if (ytVideoPlayer && typeof ytVideoPlayer.getPlayerState === 'function') {
+													var state = { data: ytVideoPlayer.getPlayerState() }
+													onVideoPlayerStateChange(state);
+												}
 											}, 1000);
 										}
 									}
