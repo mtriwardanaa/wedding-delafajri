@@ -1078,8 +1078,6 @@
 			border-radius: .33rem
 		}
 
-		:root :where(.wp-block-separator) {}
-
 		:root :where(.wp-block-separator:not(.is-style-wide):not(.is-style-dots):not(.alignwide):not(.alignfull)) {
 			width: var(--wp--preset--spacing--60)
 		}
@@ -1151,8 +1149,6 @@
 		.elementor-element {
 			--widgets-spacing: 20px 20px;
 		}
-
-			{}
 
 		h1.entry-title {
 			display: var(--page-title-display);
@@ -4316,7 +4312,7 @@
 								<div class="animated-element cover-overlay" id="coverOverlay"></div>
 								<img decoding="async"
 									src="../1MgkFLuOWCJX.id/wp-content/uploads/2025/02/52zCg59Zw8Cr.png"
-									class="animated-element cover-flower" id="coverFlower" style="" alt="cover-props">
+									class="animated-element cover-flower" id="coverFlower" alt="cover-props">
 								<div class="animated-element cover-text" id="coverText">
 									<p class="p2" style="font-style: italic;color: #66513E;margin-bottom: -10px;">The
 										Wedding of</p>
@@ -4927,7 +4923,8 @@
 								padding-right: 12px;
 								padding-left: 12px;
 								-moz-border-radius: 12px;
-								-webkit-border-radius: 6px;
+								-webkit-border-radius: 12px;
+								border-radius: 12px;
 								color: #fff;
 								margin-top: 8px
 							}
@@ -4945,7 +4942,8 @@
 								margin-left: -5px;
 								box-shadow: 0 0 20px -5px rgba(0, 0, 0, .5);
 								-moz-border-radius: 100%;
-								-webkit-border-radius: 100%
+								-webkit-border-radius: 100%;
+								border-radius: 100%
 							}
 
 							.cover-overlay {
@@ -5539,10 +5537,138 @@
 					<div class="elementor-widget-container">
 
 						<div id="rsvp-data-container" class="rsvp-data-container">
-							<!-- Comment data goes here -->
+							<!-- Ucapan will be loaded here -->
 						</div>
 					</div>
 				</div>
+
+				<!-- RSVP & Ucapan Script (Google Sheets Backend) -->
+				<script>
+					(function () {
+						// =====================================================
+						// GANTI URL INI dengan URL Google Apps Script kamu!
+						// =====================================================
+						var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxk4HpvBKmKEObej35hAAec0_LbV73WXECDXUQdOJgsXTDzqZ1WpCsZiFNsnPYAhJhx/exec';
+
+						var form = document.querySelector('form[name="nama mempelai"]');
+						var container = document.getElementById('rsvp-data-container');
+						var confirmField = document.getElementById('form-field-confirmattend');
+						var countGroup = document.querySelector('.elementor-field-group-countpeople');
+						var countField = document.getElementById('form-field-countpeople');
+
+						if (countGroup) countGroup.style.display = 'none';
+						if (countField) countField.disabled = true;
+
+						if (confirmField) {
+							confirmField.addEventListener('change', function () {
+								var showCount = this.value === 'Hadir';
+								if (countGroup) countGroup.style.display = showCount ? '' : 'none';
+								if (countField) countField.disabled = !showCount;
+							});
+						}
+
+						var zeroOpt = confirmField ? confirmField.querySelector('option[value="0"]') : null;
+						if (zeroOpt) zeroOpt.disabled = true;
+
+						if (form) {
+							form.addEventListener('submit', function (e) {
+								e.preventDefault();
+								var name = document.getElementById('form-field-guestname').value.trim();
+								var message = document.getElementById('form-field-messagestext').value.trim();
+								var attendance = confirmField ? confirmField.value : '';
+								var count = (countField && !countField.disabled) ? countField.value : '';
+
+								if (!name || !message || !attendance || attendance === '0') {
+									showNotice('Harap isi semua field yang diperlukan', true);
+									return;
+								}
+
+								if (WEB_APP_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+									saveLocal(name, message, attendance, count);
+									return;
+								}
+
+								var btn = form.querySelector('button[type="submit"]');
+								var btnText = btn.querySelector('.elementor-button-text');
+								var orig = btnText.textContent;
+								btn.disabled = true;
+								btnText.textContent = 'Mengirim...';
+
+								fetch(WEB_APP_URL, {
+									method: 'POST', mode: 'no-cors',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({ name: name, message: message, attendance: attendance, count: count })
+								}).then(function () {
+									showNotice('Terima kasih atas ucapan dan konfirmasi kehadirannya! 🎉');
+									form.reset();
+									if (countGroup) countGroup.style.display = 'none';
+									addComment(name, message, new Date().toLocaleString('id-ID'));
+									setTimeout(loadUcapan, 3000);
+								}).catch(function () {
+									saveLocal(name, message, attendance, count);
+								}).finally(function () {
+									btn.disabled = false;
+									btnText.textContent = orig;
+								});
+							});
+						}
+
+						function saveLocal(name, message, attendance, count) {
+							var data = JSON.parse(localStorage.getItem('rsvp_data') || '[]');
+							var entry = { name: name, text: message, attendance: attendance, count: count, timestamp: new Date().toLocaleString('id-ID') };
+							data.push(entry);
+							localStorage.setItem('rsvp_data', JSON.stringify(data));
+							showNotice('Terima kasih atas ucapan dan konfirmasi kehadirannya! 🎉');
+							form.reset();
+							if (countGroup) countGroup.style.display = 'none';
+							addComment(name, message, entry.timestamp);
+						}
+
+						function showNotice(msg, isErr) {
+							var old = form.parentElement.querySelector('.rsvp-notice');
+							if (old) old.remove();
+							var el = document.createElement('div');
+							el.className = 'rsvp-notice';
+							el.style.cssText = 'padding:12px 16px;margin:10px 0;border-radius:8px;text-align:center;font-size:14px;' +
+								(isErr ? 'background:#fee;color:#c33;border:1px solid #fcc;' : 'background:#efe;color:#363;border:1px solid #cfc;');
+							el.textContent = msg;
+							form.parentElement.insertBefore(el, form.nextSibling);
+							if (!isErr) setTimeout(function () { el.remove(); }, 5000);
+						}
+
+						function addComment(name, text, time) {
+							if (!container) return;
+							container.style.display = '';
+							var c = document.createElement('div');
+							c.className = 'comment';
+							c.innerHTML = '<div class="name">' + esc(name) + '</div><div class="text">' + esc(text) + '</div><div class="time">' + esc(time) + '</div>';
+							container.insertBefore(c, container.firstChild);
+						}
+
+						function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+						function loadUcapan() {
+							if (WEB_APP_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') { loadLocal(); return; }
+							fetch(WEB_APP_URL).then(function (r) { return r.json(); }).then(function (res) {
+								if (res.data && res.data.length > 0) {
+									container.innerHTML = '';
+									res.data.forEach(function (item) { addComment(item.name, item.text, item.timestamp); });
+								}
+							}).catch(function () { loadLocal(); });
+						}
+
+						function loadLocal() {
+							var data = JSON.parse(localStorage.getItem('rsvp_data') || '[]');
+							if (data.length > 0 && container) {
+								container.innerHTML = '';
+								data.slice().reverse().forEach(function (item) { addComment(item.name, item.text, item.timestamp); });
+							}
+						}
+
+						if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadUcapan);
+						else loadUcapan();
+					})();
+				</script>
 			</div>
 			<div class="elementor-element elementor-element-4e4052e e-con-full e-flex e-con e-child" data-id="4e4052e"
 				data-element_type="container">
