@@ -5687,7 +5687,7 @@
 						function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 						function loadUcapan() {
-							if (WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbxk4HpvBKmKEObej35hAAec0_LbV73WXECDXUQdOJgsXTDzqZ1WpCsZiFNsnPYAhJhx/exec') { loadLocal(); return; }
+							if (WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbxk4HpvBKmKEObej35hAAec0_LbV73WXECDXUQdOJgsXTDzqZ1WpCsZiFNsnPYAhJhx/ex') { loadLocal(); return; }
 							fetch(WEB_APP_URL).then(function (r) { return r.json(); }).then(function (res) {
 								if (res.data && res.data.length > 0) {
 									container.innerHTML = '';
