@@ -5533,7 +5533,7 @@
 					</div>
 				</div>
 				<div class="elementor-element elementor-element-e348aa3 reanimate up elementor-widget__width-inherit elementor-widget elementor-widget-rsvp"
-					data-id="e348aa3" data-element_type="widget" data-widget_type="rsvp.default">
+					data-id="e348aa3" data-element_type="widget" data-widget_type="rsvp.default" style="display:none">
 					<div class="elementor-widget-container">
 
 						<div id="rsvp-data-container" class="rsvp-data-container">
@@ -5552,6 +5552,7 @@
 
 						var form = document.querySelector('form[name="nama mempelai"]');
 						var container = document.getElementById('rsvp-data-container');
+						var rsvpWidget = container ? container.closest('.elementor-widget-rsvp') : null;
 						var confirmField = document.getElementById('form-field-confirmattend');
 						var countGroup = document.querySelector('.elementor-field-group-countpeople');
 						var countField = document.getElementById('form-field-countpeople');
@@ -5591,7 +5592,7 @@
 									return;
 								}
 
-								if (WEB_APP_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+								if (WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbxk4HpvBKmKEObej35hAAec0_LbV73WXECDXUQdOJgsXTDzqZ1WpCsZiFNsnPYAhJhx/exec') {
 									saveLocal(name, message, attendance, count);
 									return;
 								}
@@ -5609,6 +5610,7 @@
 								}).then(function () {
 									showNotice('Terima kasih atas ucapan dan konfirmasi kehadirannya! 🎉');
 									form.reset();
+									if (toParam && guestInput) guestInput.value = decodeURIComponent(toParam.replace(/\+/g, ' '));
 									if (confirmField) confirmField.value = '0';
 									if (countGroup) countGroup.style.display = 'none';
 									if (countField) countField.disabled = true;
@@ -5630,6 +5632,7 @@
 							localStorage.setItem('rsvp_data', JSON.stringify(data));
 							showNotice('Terima kasih atas ucapan dan konfirmasi kehadirannya! 🎉');
 							form.reset();
+							if (toParam && guestInput) guestInput.value = decodeURIComponent(toParam.replace(/\+/g, ' '));
 							if (confirmField) confirmField.value = '0';
 							if (countGroup) countGroup.style.display = 'none';
 							if (countField) countField.disabled = true;
@@ -5650,6 +5653,20 @@
 
 						function addComment(name, text, time) {
 							if (!container) return;
+							// Check if comment with same name already exists — update it
+							var existing = container.querySelectorAll('.comment');
+							for (var i = 0; i < existing.length; i++) {
+								var nameEl = existing[i].querySelector('.name');
+								if (nameEl && nameEl.textContent.trim().toLowerCase() === name.trim().toLowerCase()) {
+									existing[i].querySelector('.text').textContent = text;
+									existing[i].querySelector('.time').textContent = time;
+									// Move to top
+									container.insertBefore(existing[i], container.firstChild);
+									return;
+								}
+							}
+							// New comment
+							if (rsvpWidget) rsvpWidget.style.display = '';
 							container.style.display = '';
 							var c = document.createElement('div');
 							c.className = 'comment';
@@ -5659,6 +5676,7 @@
 
 						function appendComment(name, text, time) {
 							if (!container) return;
+							if (rsvpWidget) rsvpWidget.style.display = '';
 							container.style.display = '';
 							var c = document.createElement('div');
 							c.className = 'comment';
@@ -5669,11 +5687,15 @@
 						function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 						function loadUcapan() {
-							if (WEB_APP_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') { loadLocal(); return; }
+							if (WEB_APP_URL === 'https://script.google.com/macros/s/AKfycbxk4HpvBKmKEObej35hAAec0_LbV73WXECDXUQdOJgsXTDzqZ1WpCsZiFNsnPYAhJhx/exec') { loadLocal(); return; }
 							fetch(WEB_APP_URL).then(function (r) { return r.json(); }).then(function (res) {
 								if (res.data && res.data.length > 0) {
 									container.innerHTML = '';
+									container.style.display = '';
 									res.data.forEach(function (item) { appendComment(item.name, item.text, item.timestamp); });
+								} else {
+									container.style.display = 'none';
+									if (rsvpWidget) rsvpWidget.style.display = 'none';
 								}
 							}).catch(function () { loadLocal(); });
 						}
@@ -5682,7 +5704,11 @@
 							var data = JSON.parse(localStorage.getItem('rsvp_data') || '[]');
 							if (data.length > 0 && container) {
 								container.innerHTML = '';
+								container.style.display = '';
 								data.slice().reverse().forEach(function (item) { appendComment(item.name, item.text, item.timestamp); });
+							} else if (container) {
+								container.style.display = 'none';
+								if (rsvpWidget) rsvpWidget.style.display = 'none';
 							}
 						}
 

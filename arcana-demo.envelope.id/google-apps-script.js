@@ -14,8 +14,8 @@ function doGet(e) {
     }
 
     const data = sheet.getDataRange().getValues();
-    const headers = data[0];
-    const rows = data.slice(1);
+    const hasHeader = data.length > 0 && data[0][0].toString().trim().toLowerCase() === 'nama';
+    const rows = hasHeader ? data.slice(1) : data;
 
     const result = rows.map(row => ({
         name: row[0],
@@ -46,19 +46,46 @@ function processPost(sheet, e) {
     try {
         const data = JSON.parse(e.postData.contents);
         const timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+        const name = (data.name || '').trim();
 
-        sheet.appendRow([
-            data.name || '',
+        // Cari row dengan nama yang sama (case-insensitive)
+        const allData = sheet.getDataRange().getValues();
+        let existingRow = -1;
+
+        // Auto-detect: skip header row jika ada
+        const hasHeader = allData.length > 0 && allData[0][0].toString().trim().toLowerCase() === 'nama';
+        const startIdx = hasHeader ? 1 : 0;
+
+        for (let i = startIdx; i < allData.length; i++) {
+            if (allData[i][0].toString().trim().toLowerCase() === name.toLowerCase()) {
+                existingRow = i + 1; // +1 karena sheet 1-indexed
+                break;
+            }
+        }
+
+        const rowData = [
+            name,
             data.message || '',
             data.attendance || '',
             data.count || '',
             timestamp
-        ]);
+        ];
 
-        return ContentService.createTextOutput(JSON.stringify({
-            status: 'success',
-            message: 'Data berhasil disimpan'
-        })).setMimeType(ContentService.MimeType.JSON);
+        if (existingRow > 0) {
+            // Update row yang sudah ada
+            sheet.getRange(existingRow, 1, 1, 5).setValues([rowData]);
+            return ContentService.createTextOutput(JSON.stringify({
+                status: 'success',
+                message: 'Data berhasil diperbarui'
+            })).setMimeType(ContentService.MimeType.JSON);
+        } else {
+            // Tambah row baru
+            sheet.appendRow(rowData);
+            return ContentService.createTextOutput(JSON.stringify({
+                status: 'success',
+                message: 'Data berhasil disimpan'
+            })).setMimeType(ContentService.MimeType.JSON);
+        }
 
     } catch (error) {
         return ContentService.createTextOutput(JSON.stringify({
